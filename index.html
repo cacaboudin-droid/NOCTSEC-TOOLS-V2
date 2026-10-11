@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080a10">
+<title>NOCTSEC TOOLS</title>
+<style>
+:root{--bg:#080a10;--panel:#10141e;--line:#253147;--cyan:#65f5ff;--green:#72ffbd;--purple:#bb91ff;--text:#e8edf7;--muted:#8794aa}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#172035,var(--bg) 65%);color:var(--text);font-family:Consolas,monospace;min-height:100vh}
+.container{max-width:1000px;margin:auto;padding:22px 15px}
+header{text-align:center;padding:30px 12px;background:#0e131e;border:1px solid var(--line);border-radius:14px;margin-bottom:22px}
+h1{color:var(--cyan);font-size:clamp(30px,7vw,48px);letter-spacing:5px;margin:0;text-shadow:0 0 20px #65f5ff35}
+.subtitle{color:var(--purple);letter-spacing:3px;margin-top:12px}
+.badge{display:inline-block;border:1px solid #34534d;padding:6px 12px;border-radius:30px;color:var(--green);font-size:11px;margin-top:15px}
+.section-title{font-size:12px;color:var(--muted);margin:20px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tool{min-height:120px;text-align:left;padding:17px;background:linear-gradient(145deg,#141b29,#0d111a);border:1px solid var(--line);border-radius:11px;color:var(--text);font:inherit;cursor:pointer;transition:.2s}
+.tool:hover,.tool.active{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 0 18px #65f5ff12}
+.number{font-size:11px;color:var(--purple)}
+.tool h3{font-size:14px;color:var(--cyan);margin:10px 0}
+.tool p{font-size:11px;color:var(--muted);line-height:1.6;margin:0}
+.terminal{margin-top:22px;background:#090d14;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.term-head{padding:13px 15px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);font-size:11px}
+.status{color:var(--green)}
+.term-body{padding:17px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:9px}
+input{width:100%;padding:13px;background:#080b11;border:1px solid var(--line);border-radius:7px;color:white;font:inherit;outline:none}
+input:focus{border-color:var(--cyan)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.action{background:#142331;border:1px solid var(--cyan);color:var(--cyan);padding:11px 15px;border-radius:7px;font:inherit;font-size:12px;cursor:pointer}
+.action.secondary{background:#151923;border-color:var(--line);color:var(--text)}
+.progress{height:6px;background:#1b2330;margin:18px 0}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .1s}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:12px;color:var(--green);min-height:100px}
+footer{text-align:center;font-size:11px;color:var(--muted);padding:22px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>NOCTSEC</h1>
+<div class="subtitle">TOOLS // DIGITAL LAB</div>
+<div class="badge">● SYSTEM ONLINE</div>
+</header>
+
+<div class="section-title">// SELECT MODULE</div>
+<div class="grid">
+<button class="tool" data-tool="identity"><span class="number">MODULE_01</span><h3>◈ IDENTITY MATRIX</h3><p>Gestion des fiches et références.</p></button>
+<button class="tool" data-tool="network"><span class="number">MODULE_02</span><h3>⌁ NETWORK PULSE</h3><p>Tableau des paramètres réseau.</p></button>
+<button class="tool" data-tool="cipher"><span class="number">MODULE_03</span><h3>⬡ CIPHER FORGE</h3><p>Génération de chaînes hexadécimales.</p></button>
+<button class="tool" data-tool="signal"><span class="number">MODULE_04</span><h3>⌘ SIGNAL DECK</h3><p>Visualisation des événements.</p></button>
+<button class="tool" data-tool="watch"><span class="number">MODULE_05</span><h3>◉ WATCHTOWER</h3><p>Checklist des paramètres de sécurité.</p></button>
+<button class="tool" data-tool="atlas"><span class="number">MODULE_06</span><h3>✧ DIGITAL ATLAS</h3><p>Organisation des informations.</p></button>
+<button class="tool" data-tool="forge"><span class="number">MODULE_07</span><h3>⟁ RANDOM FORGE</h3><p>Création de références aléatoires.</p></button>
+</div>
+
+<section class="terminal">
+<div class="term-head"><span>NOCTSEC://CONSOLE</span><span class="status" id="status">● READY</span></div>
+<div class="term-body">
+<label for="inputValue">ENTRÉE / NOM DU PROJET</label>
+<input id="inputValue" maxlength="100" placeholder="Saisir une valeur...">
+<div class="actions">
+<button class="action" id="execute">▶ EXÉCUTER</button>
+<button class="action secondary" id="reset">EFFACER</button>
+</div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<pre id="output">NOCTSEC TOOLS v1.0
+
+Bienvenue dans la console.
+Sélectionne un module pour commencer.
+
+[READY] En attente d'une commande...</pre>
+</div>
+</section>
+<footer>NOCTSEC TOOLS © DIGITAL LAB</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let selected="identity",running=false;
+const hex=n=>Array.from({length:n},()=>"0123456789ABCDEF"[Math.floor(Math.random()*16)]).join("");
+const code=n=>Array.from({length:n},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+const modules={
+identity:{
+name:"IDENTITY MATRIX",
+steps:["Chargement des paramètres...","Organisation des références..."],
+result:v=>`IDENTITY MATRIX\n\nProjet       : ${v}\nRéférence    : ID-${hex(10)}\nCode         : ${code(12)}\nÉtat         : READY\nDate         : ${new Date().toLocaleString("fr-FR")}`
+},
+network:{
+name:"NETWORK PULSE",
+steps:["Initialisation du tableau...","Lecture des paramètres..."],
+result:v=>`NETWORK PULSE\n\nÉtiquette : ${v}\nProfil    : ${pick(["HOME","LAB","CUSTOM"])}\nPort      : ${pick([8080,3000,443,8443])}\nStatut    : READY\nRéférence : NET-${hex(8)}\n\nPour analyser un réseau réel, utilise une source réseau autorisée.`
+},
+cipher:{
+name:"CIPHER FORGE",
+steps:["Chargement du moteur...","Construction des chaînes..."],
+result:v=>`CIPHER FORGE\n\nEntrée      : ${v}\nChaîne A    : ${hex(32)}\nChaîne B    : ${hex(24)}\nRéférence   : CF-${hex(12)}\nFormat      : HEXADECIMAL`
+},
+signal:{
+name:"SIGNAL DECK",
+steps:["Ouverture du tableau...","Chargement des événements..."],
+result:v=>`SIGNAL DECK\n\nProjet : ${v}\n\n[${new Date().toLocaleTimeString("fr-FR")}] EVENT_${hex(4)} READY\n[${new Date().toLocaleTimeString("fr-FR")}] EVENT_${hex(4)} QUEUED\n[${new Date().toLocaleTimeString("fr-FR")}] EVENT_${hex(4)} COMPLETE\n\nÉtat : OPÉRATIONNEL`
+},
+watch:{
+name:"WATCHTOWER",
+steps:["Ouverture de la checklist...","Chargement des contrôles..."],
+result:v=>`WATCHTOWER\n\nProjet : ${v}\n\n[ ] Verrouillage de l'écran\n[ ] Mises à jour logicielles\n[ ] Authentification renforcée\n[ ] Sauvegardes régulières\n[ ] Confidentialité des comptes\n\nVérifie chaque élément sur ton appareil.`
+},
+atlas:{
+name:"DIGITAL ATLAS",
+steps:["Organisation des données...","Création du résumé..."],
+result:v=>`DIGITAL ATLAS\n\nProjet    : ${v}\nID        : AT-${hex(10)}\nCatégorie : DIGITAL\nÉléments  : ${Math.floor(Math.random()*8)+3}\nPriorité  : ${pick(["BASSE","NORMALE","HAUTE"])}\nStatut    : INDEXÉ`
+},
+forge:{
+name:"RANDOM FORGE",
+steps:["Démarrage du générateur...","Production des références..."],
+result:v=>`RANDOM FORGE\n\nProjet : ${v}\n\nRéférence 01 : ${code(16)}\nRéférence 02 : ${code(20)}\nRéférence 03 : ${hex(24)}\nRéférence 04 : ${code(12)}\n\nGénération terminée.`
+}
+};
+
+document.querySelectorAll("[data-tool]").forEach(button=>{
+button.addEventListener("click",()=>{
+selected=button.dataset.tool;
+document.querySelectorAll(".tool").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+$("status").textContent="● MODULE SELECTED";
+$("output").textContent=modules[selected].name+"\n\nModule chargé.\nAppuie sur EXÉCUTER.";
+});
+});
+
+$("execute").addEventListener("click",async()=>{
+if(running)return;
+running=true;
+const m=modules[selected],v=$("inputValue").value.trim()||"NOCTSEC";
+$("status").textContent="● RUNNING";
+for(const step of m.steps){
+$("output").textContent="[NOCTSEC] "+step;
+for(let p=0;p<=100;p+=10){
+$("bar").style.width=p+"%";
+await new Promise(r=>setTimeout(r,35));
+}
+}
+$("output").textContent=m.result(v);
+$("status").textContent="● COMPLETE";
+running=false;
+});
+
+$("reset").addEventListener("click",()=>{
+if(running)return;
+$("inputValue").value="";
+$("bar").style.width="0%";
+$("output").textContent="NOCTSEC TOOLS\n\n[READY] En attente d'une commande...";
+$("status").textContent="● READY";
+});
+</script>
+</body>
+</html>
